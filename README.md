@@ -6,18 +6,24 @@ Python 3
 OpenCV
 numpy
 argparse
+
+
 Usage
 The script takes in the following command-line arguments:
+
+python fps_counter.py [-h] [-v VIDEO] [-i IMAGE] [-c CAMERA] [-o OUTPUT] [-d DEVICE]
 
 -v or --video: path to video file
 -i or --image: path to image file
 -c or --camera: set to True if using the camera
 -o or --output: path to optional output video file
 -d or --device: set to cpu or gpu to specify the device for processing
-Example usage:
 
+Example usage:
 bash
 Copy code
-python script.py -v video.mp4 -d gpu
+python fps_counter.py -v video.mp4 -d gpu
+
+
 Output
 The script displays the frames with the FPS count on them. It also outputs the average and maximum FPS over all frames to the console.
