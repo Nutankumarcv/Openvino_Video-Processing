@@ -21,7 +21,7 @@ python fps_counter.py `[-h]` [-v VIDEO] `[-i]` [-i IMAGE] `[-c]` [-c CAMERA] `[-
 ## Example usage:
 `bash`
 Copy code
-<pre>python fps_counter.py -v video.mp4 -d cpu</pre>
+<pre>python python_main.py -v video.mp4 -d cpu</pre>
 
 
 ## Output
