@@ -10,7 +10,7 @@ argparse</pre>
 ## Usage
 The script takes in the following command-line arguments:
 
-python fps_counter.py `[-h]` [-v VIDEO] `[-i]` [-i IMAGE] `[-c]` [-c CAMERA] `[-o]` [-o OUTPUT]  `[-d]` [-d DEVICE]
+python python_main.py `[-h]` [-v VIDEO] `[-i]` [-i IMAGE] `[-c]` [-c CAMERA] `[-o]` [-o OUTPUT]  `[-d]` [-d DEVICE]
 
 <pre>-v or --video: path to video file
 -i or --image: path to image file
