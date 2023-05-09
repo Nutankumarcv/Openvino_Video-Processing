@@ -1,99 +1,83 @@
-# Import the libraries:
-import numpy as np
+import argparse
 import cv2
 import time
-import os
-import argparse
 import torch
+import os
 
-#Configuration Parameters:
-def argsParser():
+def configure_arguments():
     arg_parse = argparse.ArgumentParser()
     arg_parse.add_argument("-v", "--video", default=None, help="path to Video File ")
-    arg_parse.add_argument("-i", "--image", default=None, help="path to Image File ")
-    arg_parse.add_argument("-c", "--camera", default=False, help="Set true if you want to use the camera.")
-    arg_parse.add_argument("-o", "--output", type=str, help="path to optional output video file")
-    arg_parse.add_argument("-d", "--device", type=str, default='cpu', help="Device to use for processing (cpu or gpu)")
+    arg_parse.add_argument("-c", "--camera", action='store_true', help="Set true if you want to use the camera.")
+    arg_parse.add_argument('--no_show', help="Optional. Don't show output.", action='store_true')
+    arg_parse.add_argument("-d", "--device", type=str, default='cpu', help="Specify the target device to infer on; CPU or GPU. Suitable plugin for the device specified.")
+    return arg_parse
+
+def check_device(device):
+    if device == 'gpu':
+        if not torch.cuda.is_available():
+            raise Exception("GPU not available on this system.")
+        else:
+            return torch.device('cuda')
+    else:
+        return torch.device('cpu')
+
+def main(args):
+    device = check_device(args["device"])
+
+    if args["video"]:
+        if not os.path.exists(args["video"]):
+            raise Exception("The specified video file does not exist.")
+        cap = cv2.VideoCapture(args["video"])
+    elif args["camera"]:
+        cap = cv2.VideoCapture(0)
+    else:
+        raise Exception("No video or camera source specified.")
+
+    if not cap.isOpened():
+        if args["video"]:
+            raise Exception("Could not open the specified video file.")
+        elif args["camera"]:
+            raise Exception("Could not open the camera feed.")
+
+    fps_list = []
+    max_fps = 0
+    start_time = time.time()
+
+    while True:
+        ret, frame = cap.read()
+
+        if not ret:
+            break
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
+        try:
+            fps = 1 / elapsed_time
+        except ZeroDivisionError:
+            fps = 0
+
+        start_time = end_time
+        fps_list.append(fps)
+        max_fps = max(max_fps, fps)
+
+        if not args["no_show"]:
+            cv2.putText(frame, f"FPS: {int(fps)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.imshow("Output", frame)
+            key = cv2.waitKey(1) & 0xFF
+
+            if key == ord("q"):
+                break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    avg_fps = sum(fps_list) / len(fps_list)
+    print(f"Average FPS: {int(avg_fps)}")
+    print(f"Maximum FPS: {int(max_fps)}")
+
+if __name__ == "__main__":
+    arg_parse = configure_arguments()
     args = vars(arg_parse.parse_args())
 
-    return args
-
-args = argsParser()
-
-if args['device'] == 'gpu' and torch.cuda.is_available():
-    device = torch.device('gpu')
-else:
-    device = torch.device('cpu')
-
-if args['camera']:
-    cap = cv2.VideoCapture(0)
-else:
-    cap = cv2.VideoCapture(args['video'])
-
-# used to record the time when we processed last frame and current frame
-prev_frame_time = 0
-new_frame_time = 0
-
-# total fps counter
-total_fps = 0
-frame_counter = 0
-max_fps = 0
-
-# Reading the video file:
-while(cap.isOpened()):
-
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    if not ret:
-        break
-    gray = frame
-
-    # resizing the frame size
-    #gray = cv2.resize(gray, (1080, 720))
-
-    new_frame_time = time.time()
-
-    # Calculating the fps:
-
-    fps = 1/(new_frame_time-prev_frame_time)
-    prev_frame_time = new_frame_time
-
-    max_fps = max(max_fps, fps)
-
-    # increment total fps and frame counter
-    total_fps += fps
-    frame_counter += 1
-
-    # converting the fps into integer
-    fps = int(fps)
-    fps = str(fps)
-    print("FPS: ", fps)
-
-    font = cv2.FONT_HERSHEY_SIMPLEX
-
-    # FPS count on the frame
-    cv2.putText(gray, fps, (7, 70), font, 3, (40, 40, 255), 3, cv2.LINE_AA)
-
-    # displaying the frame with fps
-    cv2.imshow('frame', gray)
-
-    # press 'Q' if you want to exit
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# calculate average fps and display
-avg_fps = int(total_fps / frame_counter) if frame_counter > 0 else 0
-avg_fps_str = "Average FPS: " + str(avg_fps)
-print(avg_fps_str)
-
-font = cv2.FONT_HERSHEY_SIMPLEX
-cv2.putText(gray, avg_fps_str, (7, 140), font, 3, (40, 40, 255), 3, cv2.LINE_AA)
-
-# calculate max fps and display
-max_fps_str = "Max FPS: " + str(int(max_fps))
-print(max_fps_str)
-cv2.putText(gray, max_fps_str, (7, 210), font, 3, (40, 40, 255), 3, cv2.LINE_AA)
-
-# When everything done, release the capture
-cap.release()
-cv2.destroyAllWindows()
+    main(args)
