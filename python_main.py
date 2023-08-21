@@ -2,6 +2,7 @@ import argparse
 import cv2
 import time
 import torch
+import os.path
 import os
 
 def configure_arguments():

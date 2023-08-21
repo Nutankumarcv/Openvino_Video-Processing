@@ -4,6 +4,7 @@ This Python script captures a video or an image file, or uses the camera to capt
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
+
 ## Requirements
 <pre>Python 3
 OpenCV
